@@ -160,5 +160,7 @@ cython_debug/
 #.idea/
 
 # Project
-docker_pg_data/
-environments/
+pgadmin-data
+postgres-data
+prod.env
+test.env
