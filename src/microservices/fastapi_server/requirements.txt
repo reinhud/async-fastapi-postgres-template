@@ -1,0 +1,16 @@
+# app
+fastapi==0.78.0
+pydantic==1.9.1
+uvicorn==0.18.2
+loguru==0.6.0
+
+# settings
+python-dotenv==0.20.0
+
+# db
+SQLAlchemy==1.4.39
+alembic==1.8.1
+asyncpg==0.26.0
+
+# testing
+pytest==7.1.2

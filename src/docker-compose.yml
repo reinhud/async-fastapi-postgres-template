@@ -1,0 +1,66 @@
+version: "3.9"
+
+services:
+  db:
+    container_name: postgres_container
+    hostname: postgres_container
+    image: postgres:14
+    restart: always
+    ports:
+      - "${POSTGRES_CONTAINER_PORT}:5432" 
+    volumes:    # dont use this in production, mounting docker volume to location on my machine where to store postgres data for docker
+      - ./docker_pg_data/postgres-data:/var/lib/postgresql/data
+    env_file:
+      - .env
+    networks:
+      app1_net:
+        ipv4_address: 192.168.0.2
+
+
+  pgadmin:
+    container_name: pgadmin4_container
+    image: dpage/pgadmin4
+    restart: always
+    ports:
+      - "5050:80"
+    volumes:
+     - ./docker_pg_data/pgadmin-data:/var/lib/pgadmin
+    env_file:
+      - .env
+    depends_on:
+      - db
+    networks:
+      app1_net:
+        ipv4_address: 192.168.0.3
+
+
+  fastapi_server:
+    container_name: fastapi_server_container
+    build: 
+      context: ./microservices/fastapi_server
+      dockerfile: Dockerfile
+    working_dir: /fastapi_server
+    ports:
+      - "8001:8001"
+    command: >
+        bash -c "uvicorn app.fastapi_server:app --reload --workers 1 --host 0.0.0.0 --port 8001
+        && alembic revision --autogenerate -m "Current DB state"
+        && alembic upgrade head"
+    volumes:
+     - ./microservices/fastapi_server:/fastapi_server    # used for live reloading of container to changes in app on local machine
+    depends_on:
+      - db
+    networks:
+      app1_net:
+        ipv4_address: 192.168.0.4
+
+volumes:
+  pgadmin-data:
+
+networks:
+  app1_net:
+    ipam:
+      driver: default 
+      config:
+      - subnet: "192.168.0.0/24"  #ipv4
+        gateway: 192.168.0.1
