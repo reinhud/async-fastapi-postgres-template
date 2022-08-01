@@ -1,15 +1,15 @@
+import os
 import sys
 import logging
 from typing import Dict, Any, List, Tuple
 
-from pydantic import PostgresDsn, SecretStr
+from pydantic import PostgresDsn
 from loguru import logger
 
-from app.core.settings.base import BaseAppSettings
 from app.core.logging import InterceptHandler
 
-
-class AppSettings(BaseAppSettings):
+class AppSettings():
+    app_env: str = os.getenv("APP_ENV")
     # FastAPI App settings
     debug: bool = False
     docs_url: str = "/docs"
@@ -17,10 +17,17 @@ class AppSettings(BaseAppSettings):
     openapi_url: str = "/openapi.json"
     redoc_url: str = "/redoc"
 
-    title: str 
-    version: str 
-    description: str 
+    title: str = os.getenv("APP_TITLE")
+    version: str = os.getenv("APP_VERSION")
+    description: str = os.getenv("APP_DESCRIPTION")
     api_prefix: str = "/api"
+    # database settings
+    postgres_driver: str = "asyncpg"
+    postgres_user: str = os.getenv("POSTGRES_USER")
+    postgres_password: str = os.getenv("POSTGRES_PASSWORD")
+    postgres_server: str = os.getenv("POSTGRES_SERVER")
+    postgres_port: int = os.getenv("POSTGRES_PORT")
+    postgres_db: str = os.getenv("POSTGRES_DB")
 
     # max_connection_count: int = 10
     # min_connection_count: int = 10

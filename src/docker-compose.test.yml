@@ -30,6 +30,8 @@ services:
         && alembic upgrade head"
     volumes:
      - ./microservices/fastapi_server:/fastapi_server    # used for live reloading of container to changes in app on local machine
+    env_file:
+      - test.env
     depends_on:
       - db
     networks:

@@ -9,7 +9,7 @@ TODO:
         1. Improve comments and logging
     
     * app lvl:
-        1. 
+        1. still shows prod settings when using tests?
 
 @Author: Lukas Reinhardt
 @Maintainer: Lukas Reinhardt
@@ -43,6 +43,7 @@ app = get_app()
 # testing root
 @app.get("/root_test")
 async def get_app_info():
+    import os
     
     settings = get_app_settings()
 
@@ -51,6 +52,7 @@ async def get_app_info():
         "db_settings": settings.database_settings,
         "database url": settings.database_url,
         "app info": settings.fastapi_kwargs,
+        "test_env_files": os.getenv("test_var")
     }
 
     return info
