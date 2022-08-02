@@ -42,8 +42,8 @@ echo PGADMIN_LISTEN_PORT=80
 
 ### Run with docker
 
-You must have ``docker`` and ``docker-compose`` tools installed to work with material in this section.
-Head to the ````/src``` folder of the project.
+You must have ```docker`` and ``docker-compose`` tools installed to work with material in this section.
+Head to the ```/src``` folder of the project.
 To run the program, we spin up the containers with
 ```
 docker-compose up
@@ -58,18 +58,18 @@ In tetsing, newest revision will be applied automatically before tests.
 To run migrations maually before spinning up the docker containers, go to ```/src``` and:
 * Create new revision
 ```
-docker-compose run alembic revision --autogenerate -m "The hottest new db changes around"
+docker-compose run fastapi_server alembic revision --autogenerate -m "The hottest new db changes around"
 ```
 This will try to capture the newest changes automatically.
 Check that the changes were correctly mapped by looking into 
 the revision file in ```/microservices/fastapi_server/migrations/versions```
 * Apply migrations
 ```
-alembic upgrade head
+docker-compose run fastapi_server alembic upgrade head
 ```
 
 ### Testing
-Make sure you have build the app in ````Docker``` before running tests.
+Make sure you have build the app in ```Docker``` before running tests.
 Head to ```/src``` folder and run:
 ```
 docker-compose run fastapi_server pytest .
@@ -87,7 +87,7 @@ All routes are available on ```/docs``` or ```/redoc``` paths with Swagger or Re
 @Lukas Reinhardt
 ## License
 
-This project is licensed under the [NAME HERE] License - see the LICENSE.md file for details
+This project is licensed under the MIT License - see the LICENSE file for details
 
 ## Acknowledgments
 Inspiration, code snippets, etc.

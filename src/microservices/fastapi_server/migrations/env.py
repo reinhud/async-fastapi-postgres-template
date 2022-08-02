@@ -99,7 +99,7 @@ async def run_migrations_online():
             engine_from_config(
                 context.config.get_section(context.config.config_ini_section),
                 prefix="sqlalchemy.",
-                poolclass=pool.NullPool,
+                poolclass=NullPool,
                 future=True
             )
         )

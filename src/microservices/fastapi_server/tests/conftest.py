@@ -39,7 +39,7 @@ pytest_plugins = [
 
 # database setup
 @pytest.fixture(scope="session")
-def apply_migrations() -> Generator[None]:
+def apply_migrations() -> Generator:
     """Apply migrations at beginning and end of testing session."""
     warnings.filterwarnings("ignore", category=DeprecationWarning)
     os.environ["TESTING"] = "1"
