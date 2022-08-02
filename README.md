@@ -42,7 +42,7 @@ echo PGADMIN_LISTEN_PORT=80
 
 ### Run with docker
 
-You must have ```docker`` and ``docker-compose`` tools installed to work with material in this section.
+You must have ```docker`` and ```docker-compose``` tools installed to work with material in this section.
 Head to the ```/src``` folder of the project.
 To run the program, we spin up the containers with
 ```
