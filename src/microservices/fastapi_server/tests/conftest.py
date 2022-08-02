@@ -17,7 +17,7 @@ from loguru import logger
 from app.api.dependencies.database import get_database
 from app.core.config import get_app_settings
 from app.db.models.base import Base
-from app.fastapi_server import get_app, app
+from app.fastapi_server import app
 
 
 settings = get_app_settings()
@@ -121,15 +121,6 @@ async def session(async_test_engine):
             if not conn.in_nested_transaction():
                 conn.sync_connection.begin_nested()
 
-        '''def test_get_database() -> Generator:
-            try:
-                yield async_session()
-            except SQLAlchemyError as e:
-                logger.error("Unable to yiel test session in dependency override")
-                
-
-        app.dependency_overrides[get_database] = test_get_database'''
-
         yield async_session
         await async_session.close()
         await conn.rollback()
@@ -138,9 +129,7 @@ async def session(async_test_engine):
 # fastapi setup
 @pytest.fixture()
 async def test_app(session) -> FastAPI:
-    # from app.fastapi_server import get_app
 
-    # app = get_app()
     async def test_get_database() -> Generator:
         yield session
                 

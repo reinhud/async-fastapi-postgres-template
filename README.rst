@@ -93,5 +93,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Acknowledgments
 Inspiration, code snippets, etc.
 * FastAPI Realworl Example - https://github.com/nsidnev/fastapi-realworld-example-app/blob/master/README.rst
-* SQLAlchemy async test suite - https://github.com/sqlalchemy/sqlalchemy/issues/5811
 * Phresh FastAPI Tutorial Series - https://github.com/Jastor11/phresh-tutorial/tree/master
+* Example by rhoboro - https://github.com/rhoboro/async-fastapi-sqlalchemy
+* SQLAlchemy async test suite - https://github.com/sqlalchemy/sqlalchemy/issues/5811
