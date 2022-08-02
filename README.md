@@ -55,14 +55,14 @@ docker-compose up --build
 
 ### Applying database migrations
 In tetsing, newest revision will be applied automatically before tests.
-To run migrations maually before spinning up the docker containers, go to ````/src``` and:
+To run migrations maually before spinning up the docker containers, go to ```/src``` and:
 * Create new revision
 ```
-docker-compose run alembic revision --autogenerate -m "Added account table"
+docker-compose run alembic revision --autogenerate -m "The hottest new db changes around"
 ```
 This will try to capture the newest changes automatically.
 Check that the changes were correctly mapped by looking into 
-the revision file in ```/microservicesfastapi_server/migrations/versions```
+the revision file in ```/microservices/fastapi_server/migrations/versions```
 * Apply migrations
 ```
 alembic upgrade head
@@ -70,13 +70,16 @@ alembic upgrade head
 
 ### Testing
 Make sure you have build the app in ````Docker``` before running tests.
-Head to ````/src``` folder and run:
+Head to ```/src``` folder and run:
 ```
 docker-compose run fastapi_server pytest .
 ```
 
 
 Common issues:
+
+### Web routes
+All routes are available on ```/docs``` or ```/redoc``` paths with Swagger or Redoc
 
 
 ## Authors
