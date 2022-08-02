@@ -28,6 +28,7 @@ class SQLAlchemyRepository():
     create_Schema = BaseSchema
     read_optional_schema = BaseSchema
 
+
     async def create(
         self, 
         obj_new: create_Schema

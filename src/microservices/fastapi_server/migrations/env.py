@@ -3,9 +3,9 @@ import os
 import asyncio
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
+from sqlalchemy import engine_from_config, create_engine
 from sqlalchemy.pool import NullPool
-from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncEngine
 
 from alembic import context
 
@@ -79,21 +79,11 @@ async def run_migrations_online():
     and associate a connection with the context.
 
     """
-    # handle testing config for migrations
-    if os.environ.get("TESTING"):
-        # connect to primary db
-        async_engine = create_async_engine(
-            settings.database_url, 
-            poolclass=NullPool
-        )
-        # drop testing db if it exists and create a fresh one
-        async with async_engine.connect() as ac:
-            await ac.run_sync(f"DROP DATABASE IF EXISTS {settings.postgres_db}_test")
-            await ac.run_sync(f"CREATE DATABASE {settings.postgres_db}_test")
-
+    # varies between live and test migrations
+    DATABASE_URL = f"{settings.database_url}_test" if os.environ.get("Testing") else settings.database_url
 
     connectable = context.config.attributes.get("connection", None)
-    config.set_main_option("sqlalchemy.url", str(settings.database_url))
+    config.set_main_option("sqlalchemy.url", DATABASE_URL)
     if connectable is None:
         connectable = AsyncEngine(
             engine_from_config(

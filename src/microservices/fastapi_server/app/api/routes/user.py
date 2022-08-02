@@ -11,10 +11,7 @@ from app.models.utility_schemas.user import UserQueryOptionalSchema
 from app.db.models.user import User
 
 
-router = APIRouter(
-    prefix="/user",
-    tags=["User Endpoints"],
-)
+router = APIRouter()
 
 
 # Basic Endpoints

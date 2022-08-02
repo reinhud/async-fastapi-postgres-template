@@ -5,17 +5,19 @@ from typing import Generator
 
 import alembic
 import pytest
+from asgi_lifespan import LifespanManager
+from fastapi import FastAPI
 from alembic.config import Config
 from httpx import AsyncClient
-from sqlalchemy import event
+from sqlalchemy import event,  create_engine
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import NullPool
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, AsyncEngine
+from loguru import logger
 
 from app.api.dependencies.database import get_database
 from app.core.config import get_app_settings
-from app.fastapi_server import app
+from app.db.models.base import Base
+from app.fastapi_server import get_app, app
 
 
 settings = get_app_settings()
@@ -27,8 +29,8 @@ def anyio_backend():
     return 'asyncio'
 
 
-# Allow fixtures that are in \tests\fixtures folder to be included in conftest
-# Source: https://gist.github.com/peterhurford/09f7dcda0ab04b95c026c60fa49c2a68
+# allow fixtures that are in \tests\fixtures folder to be included in conftest
+# source: https://gist.github.com/peterhurford/09f7dcda0ab04b95c026c60fa49c2a68
 def refactor(string: str) -> str:
     return string.replace("/", ".").replace("\\", ".").replace(".py", "")
 
@@ -45,26 +47,52 @@ def apply_migrations() -> Generator:
     os.environ["TESTING"] = "1"
     config = Config("alembic.ini")
 
-    # new revision, get freshest changes in db models
-    alembic.command.revision(
-        message="Revision before test",
-        autogenerate=True,
-        )
-    alembic.command.upgrade(config, "head")
-    yield
-    alembic.command.downgrade(config, "base")
+    # connect to db via sync engine
+    DEFAULT_DB_URL = f"postgresql://{settings.postgres_user}:{settings.postgres_password}@{settings.postgres_server}:{settings.postgres_port}/{settings.postgres_db}"
+    default_engine = create_engine(DEFAULT_DB_URL, 
+    echo=True,
+    isolation_level="AUTOCOMMIT"
+    )
+    # drop testing db if it exists and create a fresh one
+    with default_engine.connect() as default_conn:
+        # create fresh db for testing
+        default_conn.execute(f"DROP DATABASE IF EXISTS {settings.postgres_db}_test")
+        default_conn.execute(f"CREATE DATABASE {settings.postgres_db}_test")
 
+        # use sqlalchemy ddl for initial table setup
+        Base.metadata.create_all(bind=default_conn)
 
-# fastapi setup
-@pytest.fixture
-async def async_test_client():
-    async with AsyncClient(app=app, base_url="http://testserver") as ac:
-        yield ac
+        # automatically revert 'head' to most recennt remaining migration
+        alembic.command.stamp(config, "head")
+        # new revision, get freshest changes in db models
+        alembic.command.revision(
+            config,
+            message="Revision before test",
+            autogenerate=True,
+            )
+        alembic.command.upgrade(config, "head")
+
+        yield
+
+        alembic.command.downgrade(config, "base")
+        Base.metadata.drop_all(bind=default_conn)
 
 
 # sqlalchemy setup
 @pytest.fixture
-async def session():
+async def async_test_engine() -> AsyncEngine:
+    # setup
+    engine = create_async_engine(
+        settings.database_url, 
+        echo=True,
+        # future=True,
+        # poolclass=Nullpool,
+    )
+
+    yield engine
+
+@pytest.fixture
+async def session(async_test_engine):
     """SqlAlchemy testing suite.
 
     Using ORM while rolling back changes after commit to have independant test cases.
@@ -76,39 +104,59 @@ async def session():
     Inspiration also found on: 
     https://github.com/sqlalchemy/sqlalchemy/issues/5811#issuecomment-756269881
     """
-    async_engine = create_async_engine(
-        settings.database_url, 
-        poolclass=NullPool
-        )
-    async with async_engine.connect() as conn:
+    async with async_test_engine.connect() as conn:
 
         await conn.begin()
         await conn.begin_nested()
-        AsyncSessionLocal = sessionmaker(
-            autocommit=False,
-            autoflush=False,
-            bind=conn,
-            future=True,
-            class_=AsyncSession,
-        )
-
-        async_session = AsyncSessionLocal()
+        
+        async_session = AsyncSession(
+            conn,
+            expire_on_commit=False
+            )
 
         @event.listens_for(async_session.sync_session, "after_transaction_end")
         def end_savepoint(session, transaction):
             if conn.closed:
                 return
-            if not conn.in_nested_transaction:
+            if not conn.in_nested_transaction():
                 conn.sync_connection.begin_nested()
 
-        def test_get_database() -> Generator:
+        '''def test_get_database() -> Generator:
             try:
-                yield AsyncSessionLocal
+                yield async_session()
             except SQLAlchemyError as e:
-                pass
+                logger.error("Unable to yiel test session in dependency override")
+                
 
-        app.dependency_overrides[get_database] = test_get_database
+        app.dependency_overrides[get_database] = test_get_database'''
 
         yield async_session
         await async_session.close()
         await conn.rollback()
+
+
+# fastapi setup
+@pytest.fixture()
+async def test_app(session) -> FastAPI:
+    # from app.fastapi_server import get_app
+
+    # app = get_app()
+    async def test_get_database() -> Generator:
+        yield session
+                
+    app.dependency_overrides[get_database] = test_get_database
+
+    return app
+    
+
+@pytest.fixture
+async def async_test_client(test_app: FastAPI) -> FastAPI:    
+    async with LifespanManager(test_app):
+        async with AsyncClient(
+            app=test_app, 
+            base_url="http://testserver"
+        ) as ac:
+            try:
+                yield ac
+            except SQLAlchemyError as e:
+                logger.error("Error while yielding test client")

@@ -7,6 +7,8 @@ from typing import Callable, Generator, Type
 
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import SQLAlchemyError
+from loguru import logger
 
 from app.db.db_session import AsyncSessionLocal
 from app.db.repositories.base import SQLAlchemyRepository
@@ -17,9 +19,8 @@ async def get_database() -> Generator:
     db = AsyncSessionLocal()
     try:
         yield db
-    except:
-        # raise Exception here
-        pass
+    except SQLAlchemyError as e:
+        logger.error("Unable to yield session in database dependency")
     finally:
         await db.close()
 

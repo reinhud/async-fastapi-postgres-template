@@ -7,6 +7,7 @@ loguru==0.6.0
 # db
 sqlalchemy==1.4.39  
 alembic==1.8.1
+psycopg2-binary==2.9.2    # for ddl in tets migrations
 asyncpg==0.26.0
 
 # testing

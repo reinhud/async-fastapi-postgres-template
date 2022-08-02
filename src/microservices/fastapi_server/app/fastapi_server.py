@@ -22,7 +22,6 @@ from loguru import logger
 from app.api.routes.router import router as api_router
 from app.core.config import add_middleware, get_app_settings
 
-
 def get_app() -> FastAPI:
     """Instanciating and setting up FastAPI application"""
     settings = get_app_settings()
@@ -41,13 +40,12 @@ def get_app() -> FastAPI:
 app = get_app()
 
 
-
 # ===== App Info Endpoints ===== #
 @app.get("/")
 async def root():
     return {"message": "OK"}
 
-@app.get("/root_test")
+@app.get("/settings")
 async def get_app_info():
     settings = get_app_settings()
     info = {
@@ -67,4 +65,4 @@ async def test_logger():
     logger.error("This is an error")
     logger.critical("Shit's about to blow up")
 
-    return {"message": "See log types produced"}
+    return {"message": "See log types produced by app"}

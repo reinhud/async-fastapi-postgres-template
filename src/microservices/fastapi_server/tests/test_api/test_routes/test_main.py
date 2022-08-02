@@ -4,17 +4,24 @@ from fastapi import status
 from app.core.config import get_app_settings
 
 
-@pytest.mark.anyio
-async def test_root(async_test_client):
-    """Test if app is available"""
-    res = await async_test_client.get("/")
-    assert res.status_code == status.HTTP_200_OK
-    assert res.json() == {"message": "OK"}
+class Test_Main:
+    @pytest.mark.anyio
+    async def test_root(self, async_test_client):
+        """Test if app is available"""
+        res = await async_test_client.get("/")
+        assert res.status_code == status.HTTP_200_OK
+        assert res.json() == {"message": "OK"}
 
+    @pytest.mark.anyio
+    async def test_settings(self, async_test_client):
+        """Test if app is available"""
+        res = await async_test_client.get("/settings")
+        assert res.status_code == status.HTTP_200_OK
+    
 
 class Test_Settings:
     """Checking correct settings for testing are used."""
-    
+
     def test_correct_app_env(self):
         """Check that correct environment is enabled for test suite."""
 
