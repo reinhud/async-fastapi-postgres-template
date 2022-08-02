@@ -8,5 +8,5 @@ class UserQueryOptionalSchema(BaseSchema):
     id: Optional[int] 
     name: Optional[str] 
     birthdate: Optional[dt.date]
-    wealth: Optional[float]
+    height: Optional[float]
     updated_at: Optional[dt.datetime]

@@ -1,9 +1,11 @@
+import os
+
 import asyncio
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-from sqlalchemy.ext.asyncio import AsyncEngine
+from sqlalchemy.pool import NullPool
+from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
 from alembic import context
 
@@ -17,7 +19,7 @@ from app.db.models.base import Base
 from app.db.models.user import User
 from app.core.config import get_app_settings
 
-SETTINGS = get_app_settings()
+settings = get_app_settings()
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -51,7 +53,7 @@ def run_migrations_offline():
     script output.
 
     """
-    url = SETTINGS.database_url
+    url = settings.database_url
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -77,13 +79,21 @@ async def run_migrations_online():
     and associate a connection with the context.
 
     """
-    '''from app.db.db_session import async_engine
-    connectable = async_engine
+    # handle testing config for migrations
+    if os.environ.get("TESTING"):
+        # connect to primary db
+        async_engine = create_async_engine(
+            settings.database_url, 
+            poolclass=NullPool
+        )
+        # drop testing db if it exists and create a fresh one
+        async with async_engine.connect() as ac:
+            await ac.run_sync(f"DROP DATABASE IF EXISTS {settings.postgres_db}_test")
+            await ac.run_sync(f"CREATE DATABASE {settings.postgres_db}_test")
 
-    async with connectable.connect() as connection:
-        await connection.run_sync(do_run_migrations)'''
+
     connectable = context.config.attributes.get("connection", None)
-    config.set_main_option("sqlalchemy.url", str(SETTINGS.database_url))
+    config.set_main_option("sqlalchemy.url", str(settings.database_url))
     if connectable is None:
         connectable = AsyncEngine(
             engine_from_config(

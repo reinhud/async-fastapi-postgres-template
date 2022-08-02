@@ -11,7 +11,7 @@ class User(Base, BaseSaModel):
     # automatic id
     name = Column(String)
     birthdate = Column(Date)
-    wealth = Column(Numeric)
+    height = Column(Numeric)
     updated_at = Column(DateTime, server_default=func.now())
     
 

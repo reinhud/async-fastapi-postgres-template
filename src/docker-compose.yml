@@ -11,7 +11,7 @@ services:
     volumes:    # dont use this in production, mounting docker volume to location on my machine where to store postgres data for docker
       - ./docker_pg_data/postgres-data:/var/lib/postgresql/data
     env_file:
-      - .env
+      - prod.env
     networks:
       app1_net:
         ipv4_address: 192.168.0.2
@@ -26,7 +26,7 @@ services:
     volumes:
      - ./docker_pg_data/pgadmin-data:/var/lib/pgadmin
     env_file:
-      - .env
+      - prod.env
     depends_on:
       - db
     networks:

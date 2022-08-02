@@ -1,6 +1,7 @@
-# Project Title
+# Fully dockerized FastAPI example application with async Postgres, SQLAlchemy and Alembic
 
-Simple overview of use/purpose.
+This is a basic template for a microservice oriented fastapi application with postgres database.
+I use this to start projects from.
 
 ## Description
 
@@ -10,61 +11,81 @@ An in-depth paragraph about your project and overview of use.
 
 ### Dependencies
 
-* Describe any prerequisites, libraries, OS version, etc., needed before installing program.
-* ex. Windows 10
+* Docker
 
 ### Installing
 
-* How/where to download your program
-* Any modifications needed to be made to files/folders
+Before starting, make sure you have the latest version of Docker installed.
 
-### Executing program
-
-* How to run the program
-* Step-by-step bullets
+Run the following commands to pull this repo from github
 ```
-code blocks for commands
+git clone https://github.com/reinhud/fastapi_postgres_template
+cd POSTGRES_TEST_CONTAINER_PORT/src
+```
+Create the ```.env``` files or modify the ```.env.example``` files:
+```
+touch .env
+echo POSTGRES_CONTAINER_PORT=5432
+echo POSTGRES_TEST_CONTAINER_PORT=6543
+```
+```
+touch prod.env
+echo POSTGRES_USER="postgres"
+echo POSTGRES_PASSWORD="postgres"
+echo POSTGRES_SERVER="postgres_container" 
+echo POSTGRES_PORT=5432
+echo POSTGRES_DB="postgres"
+echo PGADMIN_DEFAULT_EMAIL="pgadmin4@pgadmin.org"
+echo PGADMIN_DEFAULT_PASSWORD="postgres"
+echo PGADMIN_LISTEN_PORT=80
+```
+
+### Run with docker
+
+You must have ``docker`` and ``docker-compose`` tools installed to work with material in this section.
+Head to the ````/src``` folder of the project.
+To run the program, we spin up the containers with
+```
+docker-compose up
+```
+If this is the first time bringing up the project, you need to build the images first:
+```
+docker-compose up --build
+```
+
+### Applying database migrations
+In tetsing, newest revision will be applied automatically before tests.
+To run migrations maually before spinning up the docker containers, go to ````/src``` and:
+* Create new revision
+```
+docker-compose run alembic revision --autogenerate -m "Added account table"
+```
+This will try to capture the newest changes automatically.
+Check that the changes were correctly mapped by looking into 
+the revision file in ```/microservicesfastapi_server/migrations/versions```
+* Apply migrations
+```
+alembic upgrade head
 ```
 
 ### Testing
-* How to run tests
-To execute tests make sure that the services are build fist.
-If a build is available, go to src/ folder and execute in command
+Make sure you have build the app in ````Docker``` before running tests.
+Head to ````/src``` folder and run:
 ```
-docker-compose -f docker-compose.test.yml run fastapi_server pytest .
+docker-compose run fastapi_server pytest .
 ```
 
-## Help
 
-Any advise for common problems or issues.
-```
-command to run if program contains helper info
-```
+Common issues:
+
 
 ## Authors
 
-Contributors names and contact info
-
-ex. Dominique Pizzie  
-ex. [@DomPizzie](https://twitter.com/dompizzie)
-
-## Version History
-
-* 0.2
-    * Various bug fixes and optimizations
-    * See [commit change]() or See [release history]()
-* 0.1
-    * Initial Release
-
+@Lukas Reinhardt
 ## License
 
 This project is licensed under the [NAME HERE] License - see the LICENSE.md file for details
 
 ## Acknowledgments
-
 Inspiration, code snippets, etc.
-* [awesome-readme](https://github.com/matiassingers/awesome-readme)
-* [PurpleBooth](https://gist.github.com/PurpleBooth/109311bb0361f32d87a2)
-* [dbader](https://github.com/dbader/readme-template)
-* [zenorocha](https://gist.github.com/zenorocha/4526327)
-* [fvcproductions](https://gist.github.com/fvcproductions/1bfc2d4aecb01a834b46)
+* FastAPI Realworl Example - https://github.com/nsidnev/fastapi-realworld-example-app/blob/master/README.rst

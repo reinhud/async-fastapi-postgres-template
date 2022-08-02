@@ -1,70 +1,114 @@
-import datetime as dt
-from typing import Any, Generator
-from fastapi import FastAPI
-from httpx import AsyncClient
+import os
+import warnings
+from glob import glob
+from typing import Generator
 
+import alembic
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession, AsyncEngine
-from sqlalchemy_utils import database_exists, create_database
-from asgi_lifespan import LifespanManager
-from loguru import logger
+from alembic.config import Config
+from httpx import AsyncClient
+from sqlalchemy import event
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import NullPool
 
-from app.db.db_session import AsyncSessionLocal, async_engine
-from app.models.domain.user import UserCreate
+from app.api.dependencies.database import get_database
+from app.core.config import get_app_settings
+from app.fastapi_server import app
 
 
-pytest_plugins = ('pytest-asyncio',)
+settings = get_app_settings()
 
+
+# make "trio" warnings go away :)
 @pytest.fixture
-def init_db():
-    if not database_exists(async_engine.url):
-        logger.warning("Database not found")
-        try:
-            create_database(async_engine.url)
-            logger.info("Database created")
-        except:
-            logger.error("Couldnt create new database")
+def anyio_backend():
+    return 'asyncio'
 
-@pytest.fixture
-def app() -> Generator[FastAPI, Any, None]:
-    from app.fastapi_server import get_app
-    yield get_app()
 
-@pytest.fixture
-def engine(app: FastAPI) -> AsyncEngine:
-    return  async_engine
+# Allow fixtures that are in \tests\fixtures folder to be included in conftest
+# Source: https://gist.github.com/peterhurford/09f7dcda0ab04b95c026c60fa49c2a68
+def refactor(string: str) -> str:
+    return string.replace("/", ".").replace("\\", ".").replace(".py", "")
 
-@pytest.fixture
-async def async_session() -> Generator:
-    async_session = AsyncSession(async_engine, autoflush=False, autocommit=False)
-    try:
-        return async_session
-    finally:
-        await async_session.close()
+pytest_plugins = [
+    refactor(fixture) for fixture in glob("tests/fixtures/*.py") if "__" not in fixture
+]
 
+
+# database setup
+@pytest.fixture(scope="session")
+def apply_migrations() -> Generator[None]:
+    """Apply migrations at beginning and end of testing session."""
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
+    os.environ["TESTING"] = "1"
+    config = Config("alembic.ini")
+
+    # new revision, get freshest changes in db models
+    alembic.command.revision(
+        message="Revision before test",
+        autogenerate=True,
+        )
+    alembic.command.upgrade(config, "head")
+    yield
+    alembic.command.downgrade(config, "base")
+
+
+# fastapi setup
 @pytest.fixture
-async def async_test_client(app: FastAPI, async_session:AsyncSession) -> Generator:
-    from app.api.dependencies.database import get_database
-    
-    # this needs to be defined inside this fixture
-    # this is generate that yields session retrieved from `session` fixture
-    
-    def get_test_database(): 
-        yield async_session
-    
-    app.dependency_overrides[get_database] = get_test_database
-        
-    async with AsyncClient(
-             app=app, base_url="http://test", 
-             ) as ac:
+async def async_test_client():
+    async with AsyncClient(app=app, base_url="http://testserver") as ac:
         yield ac
 
 
+# sqlalchemy setup
 @pytest.fixture
-async def user1():
-    new_user = UserCreate(
-        name="User 1",
-        birthdate=dt.date(2000, 1, 1),
-        wealth=1
-    )
-    return new_user
+async def session():
+    """SqlAlchemy testing suite.
+
+    Using ORM while rolling back changes after commit to have independant test cases.
+    
+    Implementation of "Joining a Session into an External Transaction (such as for test suite)"
+    recipe from sqlalchemy docs : 
+    https://docs.sqlalchemy.org/en/14/orm/session_transaction.html#joining-a-session-into-an-external-transaction-such-as-for-test-suites
+    
+    Inspiration also found on: 
+    https://github.com/sqlalchemy/sqlalchemy/issues/5811#issuecomment-756269881
+    """
+    async_engine = create_async_engine(
+        settings.database_url, 
+        poolclass=NullPool
+        )
+    async with async_engine.connect() as conn:
+
+        await conn.begin()
+        await conn.begin_nested()
+        AsyncSessionLocal = sessionmaker(
+            autocommit=False,
+            autoflush=False,
+            bind=conn,
+            future=True,
+            class_=AsyncSession,
+        )
+
+        async_session = AsyncSessionLocal()
+
+        @event.listens_for(async_session.sync_session, "after_transaction_end")
+        def end_savepoint(session, transaction):
+            if conn.closed:
+                return
+            if not conn.in_nested_transaction:
+                conn.sync_connection.begin_nested()
+
+        def test_get_database() -> Generator:
+            try:
+                yield AsyncSessionLocal
+            except SQLAlchemyError as e:
+                pass
+
+        app.dependency_overrides[get_database] = test_get_database
+
+        yield async_session
+        await async_session.close()
+        await conn.rollback()

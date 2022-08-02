@@ -7,8 +7,8 @@ from app.models.base import BaseSchema, IDSchemaMixin
 
 class UserBase(BaseSchema):
     name: str
-    birthdate: dt.date
-    wealth: Optional[float]
+    birthdate: Optional[dt.date]
+    height: Optional[float]
 
 class UserCreate(UserBase):
     pass
