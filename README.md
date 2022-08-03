@@ -1,7 +1,7 @@
-# Async Web REST API with FastAPI + SQLAlchemy 2.0 ORM Style + Docker + Pytest + Alembic
+# Async Web REST API with FastAPI + SQLAlchemy 2.0 ORM + Docker + Pytest + Alembic
 
 This is a template for a simple Web REST API using FastAPI with an async Postgres database.
-Using docker-compose to hook up a postgres database within the project and mounting the 
+Using docker-compose to hook up the database and mounting the 
 postgres data to my local machine makes development easier for me.
 
 Communication to the postgres database is done using SQLAlchemy 2.0 ORM style and async
@@ -10,8 +10,8 @@ database access via asyncpg.
 This repo also includes a pytest testing setup applying the sqlalchemy test suite example
 to async.
 
-This is a hobby project I use to learn about the awesome fastapi project, sqlalchemy and building REST APIs.
-I also use this to start new Web REST API projects from.
+This is a hobby project I use to learn about the awesome FastaAPI project, SQLAlchemy and building REST APIs.
+I also use this to start new Web REST API projects from.  
 If you have any questions, suggestions or ideas regarding my code or project structure
 feel free to contact me or contribute.
 
