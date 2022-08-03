@@ -1,23 +1,19 @@
-import os
-
 import asyncio
 from logging.config import fileConfig
-
-from sqlalchemy import engine_from_config, create_engine
-from sqlalchemy.pool import NullPool
-from sqlalchemy.ext.asyncio import AsyncEngine
+import os
+import pathlib
+import sys
 
 from alembic import context
+from sqlalchemy import engine_from_config
+from sqlalchemy.ext.asyncio import AsyncEngine
+from sqlalchemy.pool import NullPool
 
-import sys
-import pathlib
-
-
+# allow migrations to import from 'app'
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))
-
-from app.db.models.base import Base
-from app.db.models.user import User
 from app.core.config import get_app_settings
+from app.db.models.base import Base
+
 
 settings = get_app_settings()
 

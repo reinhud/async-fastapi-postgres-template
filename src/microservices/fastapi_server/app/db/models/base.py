@@ -1,13 +1,15 @@
-from sqlalchemy import Column, Integer, DateTime
-from sqlalchemy.sql import func
-from sqlalchemy.orm import declarative_mixin, declarative_base
+"""Declaring base model classes for sqlalchemy models."""
+from sqlalchemy import Column, DateTime, Integer
 from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.orm import declarative_base, declarative_mixin
+from sqlalchemy.sql import func
 
 
 Base = declarative_base()
 
 @declarative_mixin
 class BaseSaModel:
+    """Class defining common db model components."""
     # autoinc pk key
     id = Column(Integer, primary_key=True, autoincrement=True)
     updated_at = Column(DateTime, server_default=func.now())

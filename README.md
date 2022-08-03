@@ -1,11 +1,21 @@
-# Fully dockerized FastAPI example application with async Postgres, SQLAlchemy and Alembic
+# Async Web REST API with FastAPI + SQLAlchemy 2.0 ORM Style + Docker + Pytest + Alembic
 
-This is a basic template for a microservice oriented fastapi application with postgres database.
-I use this to start projects from.
+This is a template for a simple Web REST API using FastAPI with an async Postgres database.
+Using docker-compose to hook up a postgres database within the project and mounting the 
+postgres data to my local machine makes development easier for me.
 
-## Description
+Communication to the postgres database is done using SQLAlchemy 2.0 ORM style and async
+database access via asyncpg.
 
-An in-depth paragraph about your project and overview of use.
+This repo also includes a pytest testing setup applying the sqlalchemy test suite example
+to async.
+
+This is a hobby project I use to learn about the awesome fastapi project, sqlalchemy and building REST APIs.
+I also use this to start new Web REST API projects from.
+If you have any questions, suggestions or ideas regarding my code or project structure
+feel free to contact me or contribute.
+
+Happy coding :rocket: 
 
 ## Getting Started
 
@@ -96,3 +106,4 @@ Inspiration, code snippets, etc.
 * Phresh FastAPI Tutorial Series - https://github.com/Jastor11/phresh-tutorial/tree/master
 * Example by rhoboro - https://github.com/rhoboro/async-fastapi-sqlalchemy
 * SQLAlchemy async test suite - https://github.com/sqlalchemy/sqlalchemy/issues/5811
+* Pytest fixture modularization - https://gist.github.com/peterhurford/09f7dcda0ab04b95c026c60fa49c2a68

@@ -1,36 +1,37 @@
-"""Dependancies for FastApi app.
+"""Database ependancies for FastApi app.
 
 TODO:
     1. do funcs need to be async?
 """
-from typing import Callable, Generator, Type
+from typing import AsyncGenerator
 
-from fastapi import Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.exc import SQLAlchemyError
 from loguru import logger
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import sessionmaker
 
-from app.db.db_session import AsyncSessionLocal
-from app.db.repositories.base import SQLAlchemyRepository
+from app.db.db_session import get_async_engine
 
 
 # DB dependency
-async def get_database() -> Generator:
-    db = AsyncSessionLocal()
-    try:
-        yield db
-    except SQLAlchemyError as e:
-        logger.error("Unable to yield session in database dependency")
-    finally:
-        await db.close()
+async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
+    """Yield an async session.
+    
+    All conversations with the database are established via the session
+    objects. Also. the sessions act as holding zone for ORM-mapped objects.
+    """
+    async_Session = sessionmaker(
+        bind=get_async_engine(), 
+        class_=AsyncSession, 
+        autoflush=False,
+        expire_on_commit=False,   # document this
+    )
+    async with async_Session as a_sess:
+        try:
+            yield a_sess
+        except SQLAlchemyError as e:
+            logger.error("Unable to yield session in database dependency")
+            logger.error(e)
+        
 
     
-# Repo dependency
-def get_repository(repo_type: Type[SQLAlchemyRepository]) -> Callable:
-    def get_repo(
-        db: AsyncSession = Depends(get_database),
-    ) -> Type[SQLAlchemyRepository]:
-        return repo_type(db=db)
-
-    return get_repo
-

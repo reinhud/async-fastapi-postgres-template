@@ -1,20 +1,25 @@
-import os
-import warnings
+"""Test Setup.
+
+These fixtures will run before tests are involked with pytest.
+"""
 from glob import glob
+import os
 from typing import Generator
+import warnings
 
 import alembic
-import pytest
+from alembic.config import Config
 from asgi_lifespan import LifespanManager
 from fastapi import FastAPI
-from alembic.config import Config
 from httpx import AsyncClient
-from sqlalchemy import event,  create_engine
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, AsyncEngine
 from loguru import logger
+import pytest
 
-from app.api.dependencies.database import get_database
+from sqlalchemy import create_engine, event
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
+
+from app.api.dependencies.database import get_async_session
 from app.core.config import get_app_settings
 from app.db.models.base import Base
 from app.fastapi_server import app
@@ -23,23 +28,29 @@ from app.fastapi_server import app
 settings = get_app_settings()
 
 
+## ===== Pytest and Backend Setup ===== ##
+# =========================================================================== #
 # make "trio" warnings go away :)
 @pytest.fixture
 def anyio_backend():
-    return 'asyncio'
 
+    return 'asyncio'
 
 # allow fixtures that are in \tests\fixtures folder to be included in conftest
 # source: https://gist.github.com/peterhurford/09f7dcda0ab04b95c026c60fa49c2a68
 def refactor(string: str) -> str:
+
     return string.replace("/", ".").replace("\\", ".").replace(".py", "")
+
 
 pytest_plugins = [
     refactor(fixture) for fixture in glob("tests/fixtures/*.py") if "__" not in fixture
 ]
 
 
-# database setup
+
+## ===== Database Setup ===== ##
+# =========================================================================== #
 @pytest.fixture(scope="session")
 def apply_migrations() -> Generator:
     """Apply migrations at beginning and end of testing session."""
@@ -78,18 +89,19 @@ def apply_migrations() -> Generator:
         Base.metadata.drop_all(bind=default_conn)
 
 
-# sqlalchemy setup
+
+## ===== SQLAlchemy Setup ===== ##
+# =========================================================================== #
 @pytest.fixture
 async def async_test_engine() -> AsyncEngine:
-    # setup
     engine = create_async_engine(
         settings.database_url, 
         echo=True,
-        # future=True,
-        # poolclass=Nullpool,
+        future=True,
     )
 
     yield engine
+
 
 @pytest.fixture
 async def session(async_test_engine):
@@ -122,18 +134,21 @@ async def session(async_test_engine):
                 conn.sync_connection.begin_nested()
 
         yield async_session
+
         await async_session.close()
         await conn.rollback()
 
 
-# fastapi setup
+
+## ===== FastAPI Setup ===== ##
+# =========================================================================== #
 @pytest.fixture()
 async def test_app(session) -> FastAPI:
 
     async def test_get_database() -> Generator:
         yield session
                 
-    app.dependency_overrides[get_database] = test_get_database
+    app.dependency_overrides[get_async_session] = test_get_database
 
     return app
     
@@ -146,6 +161,8 @@ async def async_test_client(test_app: FastAPI) -> FastAPI:
             base_url="http://testserver"
         ) as ac:
             try:
+
                 yield ac
+
             except SQLAlchemyError as e:
                 logger.error("Error while yielding test client")

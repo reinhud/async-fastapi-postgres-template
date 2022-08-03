@@ -1,84 +1,94 @@
-"""Base abstract repo definition.
+"""Abstract CRUD Repo definitions."""
+from abc import ABC
+from typing import List
 
-TODO:
-    1. Make exceptions more specific
-    2. Type hinting improvements
-    3. in case object was not found can still return empty body and make 404 status in response instead of just raising error
-"""
-from typing import List, Type, Union
-
-from fastapi import HTTPException, status
+from loguru import logger
 from sqlalchemy import select
-from sqlalchemy.orm import Session
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app._utils._types import CREATE_SCHEMA, READ_MULTIPLE_SCHEMA, SQLA_MODEL
 from app.db.models.base import BaseSaModel
 from app.models.base import BaseSchema
 
 
-class SQLAlchemyRepository():
+class SQLAlchemyRepository(ABC):
+    """Abstract SQLAlchemy repo defining basic database operations.
+    
+    Basic CRUD methods used by domain models to interact with the
+    database are defined here.
+    """
     def __init__(
         self,
         db: AsyncSession,
     ) -> None:
         self.db = db
 
-    sa_model = BaseSaModel
+    # models and schemas object instanziation and validation
+    sqla_model: SQLA_MODEL
 
-    create_Schema = BaseSchema
-    read_optional_schema = BaseSchema
+    create_Schema: CREATE_SCHEMA
+    read_multiple_schema: READ_MULTIPLE_SCHEMA
 
-
+    ## ===== Basic Crud Operations ===== ##
     async def create(
         self, 
         obj_new: create_Schema
-        ) -> sa_model:
-        #try:
-        db_obj = self.sa_model(**obj_new.dict())
-        self.db.add(db_obj)
-        await self.db.commit()
-        
+        ) -> sqla_model | None:
+        """Commit new object to the database."""
+        try:
+            db_obj_new = self.sqla_model(**obj_new.dict())
+            self.db.add(db_obj_new)
+            await self.db.commit()
+            await self.db.refresh(db_obj_new)
+            
+            return db_obj_new
 
-        return db_obj
-        """except Exception as e:
+        except Exception as e:
             await self.db.rollback()
-            #raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Error, you suck at programming") 
-            raise e"""
+            logger.exception("Error while uploading new object to database")
+            logger.exception(e)
+
+            return None
+
 
     async def read_by_id(
         self,
         id: int,
-    ) -> sa_model:
-        res = await self.db.get(self.sa_model, id)  # returns none if no entity found
-        if not res:
-               raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No {self.sa_model.__tablename__} with id={id} found in corresponding query")
+    ) -> sqla_model | None:
+        """Get object by id or return None."""
+        res = await self.db.get(self.sqla_model, id)  # returns none if no entity found
         
         return res
 
-    async def read_optional(
-        self,
-        query_schema: read_optional_schema,
-    ) -> Union[List[sa_model], None]:
-        filters: dict = query_schema.dict(exclude_none=True)
-        stmt = select(self.sa_model).filter_by(**filters).order_by(self.sa_model.id)
-        res = await self.db.execute(stmt)
-        if not res:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'No {self.sa_model.__tablename__} found in corresponding query with querry params {query_schema.dict()}')
-        res = res.scalars().all()   # fetch all rows in list from result object
 
-        return res
+    async def read_multiple(
+        self,
+        query_schema: READ_MULTIPLE_SCHEMA,
+    ) -> List[sqla_model] | None:
+        """Get list of all objects that match with query_schema.
+        
+        If values in query schema are not provided, they will default to None and
+        will not be searched for. To search for None values specifically provide
+        desired value set to None.
+        """
+        filters: dict = query_schema.dict(exclude_none=True)
+        stmt = select(self.sqla_model).filter_by(**filters).order_by(self.sqla_model.id)
+        stream = await self.db.stream(stmt)
+        async for row in stream:
+
+            yield row
+
 
     async def delete(
         self,
         id: int,
-    ) -> Union[sa_model, None]:
-        res = await self.db.get(self.sa_model, id)
-        if not res:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No {self.sa_model.__tablename__} with id={id} found in corresponding query")
-        try:
+    ) -> sqla_model | None:
+        """Delete object from db by id or None if object not found in db"""
+        res = await self.db.get(self.sqla_model, id)
+        if res:
             await self.db.delete(res)
             await self.db.commit()
+        else:
+            logger.error(f"Object with id = {id} not found in query")
 
-            return res
-        except:
-            raise Exception
+        return res

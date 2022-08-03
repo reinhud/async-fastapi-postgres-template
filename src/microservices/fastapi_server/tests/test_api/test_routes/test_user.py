@@ -1,88 +1,109 @@
-import datetime as dt
+"""Testing user endpoints.
 
-import pytest
+More like unit tests, we're mocking the actual database calls here.
+"""
 from fastapi import status
-from sqlalchemy import Column, DateTime
+from fastapi.encoders import jsonable_encoder
+import pytest
 
-from sqlalchemy.sql import func
-
-from app.db.models.base import BaseSaModel
-
-from app.models.domain.user import UserCreate, UserUpdate, UserInDB
 from app.db.repositories.base import SQLAlchemyRepository
+from app.models.utility_schemas.user import UserQueryOptionalSchema
 
 
 @pytest.mark.anyio
 class Test_User():
-
+    """Test class for user endpoints."""
     async def test_create_user_OK(
         self,
         async_test_client,
+        User1_Correct,
         monkeypatch
     ):
-        UPDATED_AT_DEFAULT = dt.datetime.now()
-        User1_Create = UserCreate(
-            name="Test User 1",
-            height=1.90
-        )
-        User1_InDB = UserInDB(
-                id=1,
-                name="Test User 1",
-                birthdate=None,
-                height=1.90,
-                updated_at=UPDATED_AT_DEFAULT
-            )
+        User1_Create = User1_Correct["create"]
+        User1_InDB = User1_Correct["in_db"]
 
+        # mock the create method that would invoke actual db calls
         async def mock_post(self, obj_new):
             return User1_InDB         
-        
-        def mock_func_now() -> dt.datetime:
-            return Column(DateTime, UPDATED_AT_DEFAULT)
-
         monkeypatch.setattr(SQLAlchemyRepository, "create", mock_post)
-        monkeypatch.setattr(BaseSaModel, "updated_at", Column(DateTime, server_default=f"{UPDATED_AT_DEFAULT}"))
         
         res = await async_test_client.post(
             "/api/user/post",
-            json=User1_Create.dict()
+            json=User1_Create
         )
 
         assert res.status_code == status.HTTP_201_CREATED
-        assert res.json() == User1_InDB.dict()
+        assert res.json() == User1_InDB
         
     
     async def test_read_user_by_id_OK(
         self,
         async_test_client,
+        User1_Correct,
+        monkeypatch
     ):  
+        User1_InDB = User1_Correct["in_db"]
         params = {"id": 1}
+
+        async def mock_read_by_id(self, id):
+            return  User1_InDB
+        monkeypatch.setattr(SQLAlchemyRepository, "read_by_id", mock_read_by_id)
+
         res = await async_test_client.get(
             "/api/user/get_by_id",
             params=params
         )
-        assert res.status_code == status.HTTP_200_OK
 
-    async def test_read_user_optional_OK(
+        assert res.status_code == status.HTTP_200_OK
+        assert res.json() == User1_InDB
+
+
+    async def test_read_multiple_users_OK(
         self,
         async_test_client,
+        Users_List_Correct,
+        monkeypatch
     ):  
-        params = {"id": 1}
-        res = await async_test_client.get(
-            "/api/user/get_by_id",
-            params=params
+        query_schema = jsonable_encoder(
+            UserQueryOptionalSchema(
+                height=1.90
+            )
         )
+        Users_Output = [users_dict["in_db"] for users_dict in Users_List_Correct]
+
+        async def mock_read_optional(self, query_schema):
+            return Users_Output
+        monkeypatch.setattr(SQLAlchemyRepository, "read_optional", mock_read_optional)
+
+        res = await async_test_client.post(
+            "/api/user/get_optional",
+            json=query_schema
+        )
+
         assert res.status_code == status.HTTP_200_OK
+        assert res.json() == Users_Output
+
 
     async def test_delete_user_OK(
         self,
         async_test_client,
+        User1_Correct,
+        monkeypatch
     ):  
+        User1_InDB = User1_Correct["in_db"]
         params = {"id": 1}
-        res = await async_test_client.get(
-            "/api/user/get_by_id",
+
+        async def mock_delete(self, id):
+            return User1_InDB
+        monkeypatch.setattr(SQLAlchemyRepository, "delete", mock_delete)
+
+        res = await async_test_client.delete(
+            "/api/user/delete",
             params=params
         )
+
         assert res.status_code == status.HTTP_200_OK
+        assert res.json() == User1_InDB
 
     
 

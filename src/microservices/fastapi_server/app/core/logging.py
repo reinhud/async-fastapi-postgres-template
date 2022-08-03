@@ -6,6 +6,7 @@ from loguru import logger
 
 
 class InterceptHandler(logging.Handler):
+    """Custom interception handler implementing loguru logger."""
     def emit(self, record: logging.LogRecord) -> None:  # pragma: no cover
         # Get corresponding Loguru level if it exists
         try:

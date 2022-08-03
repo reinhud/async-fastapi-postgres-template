@@ -1,4 +1,4 @@
-"""Base classes for pydantic domain models will inherit from.
+"""Base classes for pydantic domain models.
 
 Allows for pydantic validation via inheritence from pydantics 'BaseModel'
 """
@@ -13,7 +13,7 @@ class BaseSchema(BaseModel):
     pass
 
 class IDSchemaMixin(BaseModel):
-    """Base pydantic schema to be inherited from by database schemata"""
+    """Base pydantic schema to be inherited from by database schemata."""
     id: int
 
     class Config(BaseModel.Config):

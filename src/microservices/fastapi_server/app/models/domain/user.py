@@ -17,5 +17,5 @@ class UserUpdate(UserBase):
     id: int
 
 class UserInDB(UserBase, IDSchemaMixin):
-    """Schema for User in database"""
+    """Schema for User in database."""
     updated_at: dt.datetime

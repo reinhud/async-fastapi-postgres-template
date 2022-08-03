@@ -40,6 +40,7 @@ def get_app() -> FastAPI:
 app = get_app()
 
 
+
 # ===== App Info Endpoints ===== #
 @app.get("/")
 async def root():
