@@ -1,6 +1,5 @@
-from typing import Any
-
-from sqlalchemy import Column, Integer
+from sqlalchemy import Column, Integer, DateTime
+from sqlalchemy.sql import func
 from sqlalchemy.orm import declarative_mixin, declarative_base
 from sqlalchemy.ext.declarative import declared_attr
 
@@ -11,6 +10,7 @@ Base = declarative_base()
 class BaseSaModel:
     # autoinc pk key
     id = Column(Integer, primary_key=True, autoincrement=True)
+    updated_at = Column(DateTime, server_default=func.now())
     __name__: str
 
     # if not declared generate tablename automatically based on class name 
