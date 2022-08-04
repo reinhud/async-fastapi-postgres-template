@@ -1,4 +1,4 @@
-# Async Web REST API with FastAPI + SQLAlchemy 2.0 ORM + Docker + Pytest + Alembic
+# Async Web REST API with FastAPI + SQLAlchemy 2.0 Postgres ORM + Docker + Pytest + Alembic
 
 This is a template for a simple Web REST API using FastAPI with an async Postgres database.
 Using docker-compose to hook up the database and mounting the 
@@ -6,6 +6,8 @@ postgres data to my local machine makes development easier for me.
 
 Communication to the postgres database is done using SQLAlchemy 2.0 ORM style and async
 database access via asyncpg.
+To see what the state of the database is during development, pgAdmin is included
+to get a nice GUI for database interaction.
 
 This repo also includes a pytest testing setup applying the sqlalchemy test suite example
 to async.
@@ -20,12 +22,10 @@ Happy coding :rocket:
 ## Getting Started
 
 ### Dependencies
-
 * Docker Engine - https://docs.docker.com/engine/install/
 * Docker Compose - https://docs.docker.com/compose/install/
 
 ### Installing
-
 Before starting, make sure you have the latest versions of Docker installed.
 
 Run the following commands to pull this repo from github and get to src folder:
@@ -51,8 +51,7 @@ echo PGADMIN_DEFAULT_PASSWORD="postgres"
 echo PGADMIN_LISTEN_PORT=80
 ```
 
-### Run with docker
-
+### Run With Docker
 You must have ```docker``` and ```docker-compose``` tools installed to work with material in this section.
 Head to the ```/src``` folder of the project.
 To run the program, we spin up the containers with
@@ -64,7 +63,7 @@ If this is the first time bringing up the project, you need to build the images 
 docker-compose up --build
 ```
 
-### Applying database migrations
+### Applying Database Migrations
 In testing, newest revision will be applied automatically before test runs.  
 To run migrations manually before spinning up the docker containers, go to ```/src``` and:
 * Create new revision:
@@ -80,20 +79,52 @@ Revisions can be created manually to if needed.
 docker-compose run fastapi_server alembic upgrade head
 ```
 
+### pgAdmin
+You can interact with the running database with ```pgAdmin``` .
+Go to your browser and navigate to:
+```
+http://localhost:5050/login
+```
+Now you can log into ```pgAdmin``` with the credentials
+set in the ```.env```.
+
 ### Testing
 Head to ```/src``` folder and run:
 ```
 docker-compose run fastapi_server pytest .
 ```
 
-### Web routes & Documentation
+### Web Routes & Documentation
 All routes are available on ```/docs``` or ```/redoc``` paths with Swagger or Redoc.
-In your browser, enter:
+In your browser, navigate to
 ```
-http://127.0.0.1:8001/docs
+http://127.0.0.1:8000/docs
 ```
 to get to the ```SwaggerUI``` API documentation.
 This is a great place to try out all the routes manually.
+
+### Project Structure
+```bash
+├───app
+│   ├───api
+│   │   ├───dependencies        # FastAPI dependency injection          
+│   │   └───routes              # endpoint definintions
+│   ├───core                    # settings
+│   ├───db
+│   │   ├───models              # SQLAlchemy models
+│   │   └───repositories        # CRUD related stuff
+│   ├───models                  # Pydantic schemas
+│   │   ├───domain              
+│   │   └───utility_schemas
+│   ├───services                # not just CRUD related stuff
+│   └───_utils      
+├───migrations                  
+│   └───versions
+└───tests   
+    ├───fixtures                # where test specific fixtures live
+    └───test_api                
+        └───test_routes
+```
 
 ## Authors
 

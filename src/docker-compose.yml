@@ -41,8 +41,8 @@ services:
       dockerfile: Dockerfile
     working_dir: /fastapi_server
     ports:
-      - "8001:8001"
-    command: bash -c "uvicorn app.fastapi_server:app --reload --workers 1 --host 0.0.0.0 --port 8001"
+      - "8000:8000"
+    command: bash -c "uvicorn app.fastapi_server:app --reload --workers 1 --host 0.0.0.0 --port 8000"
     volumes:
      - ./fastapi_server:/fastapi_server    # used for live reloading of container to changes in app on local machine
     env_file:
