@@ -21,14 +21,14 @@ Happy coding :rocket:
 
 ### Dependencies
 
-* Docker Engine
-* Docker Compose
+* Docker Engine - https://docs.docker.com/engine/install/
+* Docker Compose - https://docs.docker.com/compose/install/
 
 ### Installing
 
-Before starting, make sure you have the latest version of Docker installed.
+Before starting, make sure you have the latest versions of Docker installed.
 
-Run the following commands to pull this repo from github
+Run the following commands to pull this repo from github and get to src folder:
 ```
 git clone https://github.com/reinhud/fastapi_postgres_template
 cd POSTGRES_TEST_CONTAINER_PORT/src
@@ -40,7 +40,7 @@ echo POSTGRES_CONTAINER_PORT=5432
 echo POSTGRES_TEST_CONTAINER_PORT=6543
 ```
 ```
-touch prod.env
+touch .env
 echo POSTGRES_USER="postgres"
 echo POSTGRES_PASSWORD="postgres"
 echo POSTGRES_SERVER="postgres_container" 
@@ -65,33 +65,35 @@ docker-compose up --build
 ```
 
 ### Applying database migrations
-In testing, newest revision will be applied automatically before tests.
+In testing, newest revision will be applied automatically before test runs.  
 To run migrations manually before spinning up the docker containers, go to ```/src``` and:
-* Create new revision
+* Create new revision:
 ```
 docker-compose run fastapi_server alembic revision --autogenerate -m "The hottest new db changes around"
 ```
 This will try to capture the newest changes automatically.
 Check that the changes were correctly mapped by looking into 
-the revision file in ```/microservices/fastapi_server/migrations/versions```
-* Apply migrations
+the revision file in ```/fastapi_server/migrations/versions```.
+Revisions can be created manually to if needed.
+* Apply migrations:
 ```
 docker-compose run fastapi_server alembic upgrade head
 ```
 
 ### Testing
-Make sure you have build the app in ```Docker``` before running tests.
 Head to ```/src``` folder and run:
 ```
 docker-compose run fastapi_server pytest .
 ```
 
-
-Common issues:
-
-### Web routes
-All routes are available on ```/docs``` or ```/redoc``` paths with Swagger or Redoc
-
+### Web routes & Documentation
+All routes are available on ```/docs``` or ```/redoc``` paths with Swagger or Redoc.
+In your browser, enter:
+```
+http://127.0.0.1:8001/docs
+```
+to get to the ```SwaggerUI``` API documentation.
+This is a great place to try out all the routes manually.
 
 ## Authors
 
@@ -101,7 +103,7 @@ All routes are available on ```/docs``` or ```/redoc``` paths with Swagger or Re
 This project is licensed under the MIT License - see the LICENSE file for details
 
 ## Acknowledgments
-Inspiration, code snippets, etc.
+Inspiration, usefull repos, code snippets, etc.
 * FastAPI Realworl Example - https://github.com/nsidnev/fastapi-realworld-example-app/blob/master/README.rst
 * Phresh FastAPI Tutorial Series - https://github.com/Jastor11/phresh-tutorial/tree/master
 * Example by rhoboro - https://github.com/rhoboro/async-fastapi-sqlalchemy

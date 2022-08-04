@@ -15,5 +15,3 @@ def get_async_engine() -> AsyncEngine:
     return async_engine
 
 
-        
-        

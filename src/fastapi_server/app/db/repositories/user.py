@@ -16,7 +16,7 @@ class UserRepository(SQLAlchemyRepository):
     """
     sqla_model = UserModel
 
-    create_Schema = UserCreate
+    create_schema = UserCreate
     read_multiple_schema = UserQueryOptionalSchema
 
     

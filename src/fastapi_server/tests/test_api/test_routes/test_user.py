@@ -1,6 +1,9 @@
 """Testing user endpoints.
 
 More like unit tests, we're mocking the actual database calls here.
+
+TODO:
+    1. Implement method to test 'read_multiple' asserting streaming results
 """
 from fastapi import status
 from fastapi.encoders import jsonable_encoder
@@ -73,10 +76,10 @@ class Test_User():
 
         async def mock_read_optional(self, query_schema):
             return Users_Output
-        monkeypatch.setattr(SQLAlchemyRepository, "read_optional", mock_read_optional)
+        monkeypatch.setattr(SQLAlchemyRepository, "read_multiple", mock_read_optional)
 
         res = await async_test_client.post(
-            "/api/user/get_optional",
+            "/api/user/get_multiple",
             json=query_schema
         )
 

@@ -1,16 +1,24 @@
 """Abstract CRUD Repo definitions."""
 from abc import ABC
-from typing import List
+from typing import List, TypeVar
 
 from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app._utils._types import CREATE_SCHEMA, READ_MULTIPLE_SCHEMA, SQLA_MODEL
-from app.db.models.base import BaseSaModel
+from app.db.models.base import Base
 from app.models.base import BaseSchema
 
+## ===== Custom Type Hints ===== ##
+# sqlalchemy models
+SQLA_MODEL = TypeVar("SQLA_MODEL", bound=Base)
 
+# pydantic models
+CREATE_SCHEMA = TypeVar("CREATE_SCHEMA", bound=BaseSchema)
+READ_MULTIPLE_SCHEMA = TypeVar("READ_MULTIPLE_SCHEMA", bound=BaseSchema)
+
+
+## ===== CRUD Repo ===== ##
 class SQLAlchemyRepository(ABC):
     """Abstract SQLAlchemy repo defining basic database operations.
     
@@ -24,15 +32,15 @@ class SQLAlchemyRepository(ABC):
         self.db = db
 
     # models and schemas object instanziation and validation
-    sqla_model: SQLA_MODEL
+    sqla_model = SQLA_MODEL
 
-    create_Schema: CREATE_SCHEMA
-    read_multiple_schema: READ_MULTIPLE_SCHEMA
+    create_schema =  CREATE_SCHEMA
+    read_multiple_schema = READ_MULTIPLE_SCHEMA
 
     ## ===== Basic Crud Operations ===== ##
     async def create(
         self, 
-        obj_new: create_Schema
+        obj_new: create_schema
         ) -> sqla_model | None:
         """Commit new object to the database."""
         try:

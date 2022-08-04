@@ -3,13 +3,15 @@
 TODO:
     1. do funcs need to be async?
 """
-from typing import Callable, Type
+from typing import Callable, Type, TypeVar
 
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app._utils._types import SQLA_REPO_TYPE
 from app.api.dependencies.database import get_async_session
+from app.db.repositories.base import SQLAlchemyRepository
+
+SQLA_REPO_TYPE = TypeVar("SQLA_REPO_TYPE", bound=SQLAlchemyRepository)
 
 
 # Repo dependency
