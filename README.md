@@ -107,22 +107,21 @@ This is a great place to try out all the routes manually.
 ```bash
 ├───app
 │   ├───api
-│   │   ├───dependencies        # FastAPI dependency injection          
+│   │   ├───dependencies        # FastAPI dependency injection 
 │   │   └───routes              # endpoint definintions
 │   ├───core                    # settings
 │   ├───db
 │   │   ├───models              # SQLAlchemy models
 │   │   └───repositories        # CRUD related stuff
 │   ├───models                  # Pydantic schemas
-│   │   ├───domain              
-│   │   └───utility_schemas
-│   ├───services                # not just CRUD related stuff
-│   └───_utils      
-├───migrations                  
+│   │   ├───domain              # schemas related to domain entities
+│   │   └───utility_schemas     # schemas for other validation
+│   └───services                # not just CRUD related stuff
+├───migrations
 │   └───versions
-└───tests   
+└───tests
     ├───fixtures                # where test specific fixtures live
-    └───test_api                
+    └───test_api
         └───test_routes
 ```
 
