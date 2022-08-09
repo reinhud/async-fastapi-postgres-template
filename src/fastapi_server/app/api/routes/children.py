@@ -41,10 +41,10 @@ async def get_optional_children(
     query_schema: ChildOptionalSchema,
     child_repo: ChildRepository = Depends(get_repository(ChildRepository)),
 ) -> List[ChildInDB] | None:
-    children_db = await child_repo.read_multiple(query_schema=query_schema)
+    children_db = await child_repo.read_optional(query_schema=query_schema)
     if not children_db:
         logger.warning(f"No children found.")
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No children matching query = {query_schema}.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No children matching query: {query_schema.dict(exclude_none=True)}.")
 
     return children_db
 
@@ -56,6 +56,6 @@ async def delete_child(
     parent_deleted = await child_repo.delete(id=id)
     if not parent_deleted:
         logger.warning(f"No parent with id = {id}.")
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Unable to delete parent with id = {id}, Parent not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Unable to delete child with id = {id}, Parent not found")
 
     return parent_deleted

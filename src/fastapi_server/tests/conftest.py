@@ -4,7 +4,7 @@ These fixtures will run before tests are involked with pytest.
 """
 from glob import glob
 import os
-from typing import Generator
+from typing import Generator, List, TypeVar
 import warnings
 
 import alembic
@@ -14,17 +14,21 @@ from fastapi import FastAPI
 from httpx import AsyncClient
 from loguru import logger
 import pytest
-from sqlalchemy import create_engine, event
+from sqlalchemy import event
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy_utils import create_database
 
 from app.api.dependencies.database import get_async_session
 from app.core.config import get_app_settings
+from app.db.db_session import get_async_engine
 from app.db.models.base import Base
 from app.fastapi_server import app
-from app.db.db_session import get_async_engine
+from app.models.base import BaseSchema
 
+
+InDB_SCHEMA = TypeVar("InDB_SCHEMA", bound=BaseSchema)
 
 settings = get_app_settings()
 
@@ -50,8 +54,26 @@ pytest_plugins = [
 
 ## ===== Database Setup ===== ##
 # =========================================================================== #
+@pytest.fixture
+async def seed_db(
+    Parent1_InDB_Model,
+    Parent2_InDB_Model,
+    Child1_InDB_Model,
+    Child2_InDB_Model,
+) -> List[InDB_SCHEMA]:
+    """Seed the database with test parents and children."""
+    database_seed = [
+        Parent1_InDB_Model,
+        Parent2_InDB_Model,
+        Child1_InDB_Model,
+        Child2_InDB_Model,
+    ]
+
+    return database_seed
+
+
 @pytest.fixture(scope="session")
-async def apply_migrations() -> Generator:
+async def apply_migrations(seed_db) -> Generator:
     """Apply migrations at beginning and end of testing session."""
     warnings.filterwarnings("ignore", category=DeprecationWarning)
     os.environ["TESTING"] = "1"     # tells alembics .env to use test database in migrations
@@ -62,6 +84,17 @@ async def apply_migrations() -> Generator:
     TEST_DATABASE = f"{async_engine.url}_test"
   
     async with async_engine.connect() as async_conn:
+
+        async_session = sessionmaker(
+        async_engine, 
+        expire_on_commit=False, 
+        class_=AsyncSession,
+        )
+
+        # seed the database
+        async with async_session() as session:
+            async with session.begin():
+                session.add_all(seed_db)
 
         await async_conn.run_sync(create_database(TEST_DATABASE))
         # use sqlalchemy ddl for initial table setup

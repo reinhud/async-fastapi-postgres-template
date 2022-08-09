@@ -12,7 +12,6 @@ def get_async_engine() -> AsyncEngine:
     try:
         async_engine: AsyncEngine = create_async_engine(
             get_app_settings().database_url,
-            echo=True,  # see sql queries executed
             future=True,
         )
     except SQLAlchemyError as e:
@@ -30,9 +29,10 @@ async def initialize_database() -> None:
     """
     async_engine = get_async_engine()
     async with async_engine.begin() as async_conn:
-        logger.info("Trying to create new tables")
 
         await async_conn.run_sync(Base.metadata.create_all)
+
+        logger.success("Initializing database was successfull.")
 
 
 

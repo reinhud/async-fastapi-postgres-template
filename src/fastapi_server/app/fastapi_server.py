@@ -9,6 +9,10 @@ TODO:
         1. Improve logging
         2. create tag metadata with pydantic
 
+    * module lvl:
+        	1. improve validation for dates in pydantic,
+            only accepts datetimes without the 'Z' suffix.
+
 @Author: Lukas Reinhardt
 @Maintainer: Lukas Reinhardt
 """
@@ -24,8 +28,6 @@ def get_app() -> FastAPI:
     """Instanciating and setting up FastAPI application."""
     settings = get_app_settings()
 
-    settings.configure_logging()
-
     app = FastAPI(**settings.fastapi_kwargs)
 
     add_middleware(app)
@@ -34,8 +36,9 @@ def get_app() -> FastAPI:
 
     @app.on_event("startup")
     async def startup_event() -> None:
-        logger.warning("Startup Event starting")
         await initialize_database()
+
+    settings.configure_logging()
 
     return app
 

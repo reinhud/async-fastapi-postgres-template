@@ -12,6 +12,6 @@ class ParentOptionalSchema(BaseSchema):
     """
     id: Optional[int] 
     name: Optional[str] 
-    birthdate: Optional[dt.date]
-    height: Optional[float]
-    updated_at: Optional[dt.datetime]
+    birthdate: Optional[dt.date] 
+    height: Optional[float] 
+    updated_at: Optional[dt.datetime] 

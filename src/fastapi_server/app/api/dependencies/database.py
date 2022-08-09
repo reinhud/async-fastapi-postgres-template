@@ -20,19 +20,17 @@ async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
     All conversations with the database are established via the session
     objects. Also. the sessions act as holding zone for ORM-mapped objects.
     """
-    logger.warning("Trying to get async engine")
     async_session = sessionmaker(
         bind=get_async_engine(), 
         class_=AsyncSession, 
         autoflush=False,
         expire_on_commit=False,   # document this
     )
-    logger.warning("Success with async engine")
     async with async_session() as async_sess:
-        logger.warning("In session loop")
         try:
+            
             yield async_sess
-            logger.warning("yielded session")
+
         except SQLAlchemyError as e:
             logger.error("Unable to yield session in database dependency")
             logger.error(e)

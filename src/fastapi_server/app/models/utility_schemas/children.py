@@ -10,9 +10,9 @@ class ChildOptionalSchema(BaseSchema):
     
     All optional allows to query for every attricbute optionally.
     """
-    id: Optional[int] 
-    name: Optional[str] 
-    birthdate: Optional[dt.date]
-    height: Optional[float]
-    hobby: Optional[str]
-    updated_at: Optional[dt.datetime]
+    id: Optional[int] = None
+    name: Optional[str] = None 
+    birthdate: Optional[dt.date] = None
+    height: Optional[float] = None
+    hobby: Optional[str] = None
+    updated_at: Optional[dt.datetime] = None

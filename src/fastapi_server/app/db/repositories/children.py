@@ -17,4 +17,4 @@ class ChildRepository(SQLAlchemyRepository):
     sqla_model = ChildModel
 
     create_schema = ChildCreate
-    read_multiple_schema = ChildOptionalSchema
+    read_optional_schema = ChildOptionalSchema

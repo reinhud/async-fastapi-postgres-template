@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.dependencies.database import get_async_session
 from app.db.repositories.base import SQLAlchemyRepository
 
+
 SQLA_REPO_TYPE = TypeVar("SQLA_REPO_TYPE", bound=SQLAlchemyRepository)
 
 

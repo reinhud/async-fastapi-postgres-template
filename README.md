@@ -63,6 +63,17 @@ If this is the first time bringing up the project, you need to build the images 
 docker-compose up --build
 ```
 
+### pgAdmin
+You can interact with the running database with ```pgAdmin``` .
+Go to your browser and navigate to:
+```
+http://localhost:5050/login
+```
+Now you can log into ```pgAdmin``` with the credentials
+set in the ```.env```.
+Initially you will have to register the ```postgres_container``` server
+and connect to it.
+
 ### Applying Database Migrations
 In testing, newest revision will be applied automatically before test runs.  
 To run migrations manually before spinning up the docker containers, go to ```/src``` and:
@@ -78,15 +89,9 @@ Revisions can be created manually to if needed.
 ```
 docker-compose run fastapi_server alembic upgrade head
 ```
-
-### pgAdmin
-You can interact with the running database with ```pgAdmin``` .
-Go to your browser and navigate to:
-```
-http://localhost:5050/login
-```
-Now you can log into ```pgAdmin``` with the credentials
-set in the ```.env```.
+If you get an error like *Target database is not up to date.* you might have to 
+manually tell alembic that the current migration represents the state of the database
+with ```docker-compose run fastapi_server alembic stamp head``` before upgrading again.
 
 ### Testing
 Head to ```/src``` folder and run:
@@ -113,7 +118,7 @@ This is a great place to try out all the routes manually.
 │   ├───db
 │   │   ├───models              # SQLAlchemy models
 │   │   └───repositories        # CRUD related stuff
-│   ├───models                  # Pydantic schemas
+│   ├───models                  
 │   │   ├───domain              # schemas related to domain entities
 │   │   └───utility_schemas     # schemas for other validation
 │   └───services                # not just CRUD related stuff
@@ -121,8 +126,8 @@ This is a great place to try out all the routes manually.
 │   └───versions
 └───tests
     ├───fixtures                # where test specific fixtures live
-    └───test_api                # testing endpoints
-        └───test_routes
+    └───unit_tests                
+        └───test_api            # testing endpoints
 ```
 
 ## Authors
@@ -138,4 +143,5 @@ Inspiration, usefull repos, code snippets, etc.
 * Phresh FastAPI Tutorial Series - https://github.com/Jastor11/phresh-tutorial/tree/master
 * Example by rhoboro - https://github.com/rhoboro/async-fastapi-sqlalchemy
 * SQLAlchemy async test suite - https://github.com/sqlalchemy/sqlalchemy/issues/5811
+* Unify Python/ Uvicorn Logging - https://pawamoy.github.io/posts/unify-logging-for-a-gunicorn-uvicorn-app/
 

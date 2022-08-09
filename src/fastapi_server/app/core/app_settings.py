@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Tuple
 from loguru import logger
 from pydantic import PostgresDsn
 
-from app.core.logging import InterceptHandler
+from app.core.logging import format_record, InterceptHandler
 from app.core.tags_metadata import metadata_tags
 
 
@@ -38,7 +38,7 @@ class AppSettings():
     postgres_db: str = os.getenv("POSTGRES_DB")
 
     # logging
-    logging_level: int = logging.INFO
+    logging_level: int = logging.DEBUG
     loggers: Tuple[str, str] = ("uvicorn.asgi", "uvicorn.access")
 
 
@@ -73,11 +73,18 @@ class AppSettings():
 
     def configure_logging(self) -> None:
         """Configure and format logging used in app."""
-        logging.getLogger().handlers = [InterceptHandler()]
-        for logger_name in self.loggers:
-            logging_logger = logging.getLogger(logger_name)
-            logging_logger.handlers = [InterceptHandler(level=self.logging_level)]
+        logging.basicConfig()
+        logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+        # intercept everything at the root logger
+        logging.root.handlers = [InterceptHandler()]
+        logging.root.setLevel("DEBUG")
 
-        logger.configure(handlers=[{"sink": sys.stderr, "level": self.logging_level}])
-        FORMAT = "[<green>{time}</green>] [<level>{level}</level>] <level>{message}</level>"
-        logger.add(sys.stdout, colorize=True, format=FORMAT)
+        # remove every other logger's handlers
+        # and propagate to root logger
+        for name in logging.root.manager.loggerDict.keys():
+            logging.getLogger(name).handlers = []
+            logging.getLogger(name).propagate = True
+
+        # configure loguru
+        logger.configure(handlers=[{"sink": sys.stdout, "serialize": False, "format": format_record, "colorize":True,}])
+   

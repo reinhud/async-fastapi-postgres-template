@@ -15,7 +15,7 @@ SQLA_MODEL = TypeVar("SQLA_MODEL", bound=Base)
 
 # pydantic models
 CREATE_SCHEMA = TypeVar("CREATE_SCHEMA", bound=BaseSchema)
-READ_MULTIPLE_SCHEMA = TypeVar("READ_MULTIPLE_SCHEMA", bound=BaseSchema)
+READ_OPTIONAL_SCHEMA = TypeVar("READ_OPTIONAL_SCHEMA", bound=BaseSchema)
 
 
 ## ===== CRUD Repo ===== ##
@@ -35,7 +35,7 @@ class SQLAlchemyRepository(ABC):
     sqla_model = SQLA_MODEL
 
     create_schema =  CREATE_SCHEMA
-    read_multiple_schema = READ_MULTIPLE_SCHEMA
+    read_optional_schema = READ_OPTIONAL_SCHEMA
 
     ## ===== Basic Crud Operations ===== ##
     async def create(
@@ -46,13 +46,18 @@ class SQLAlchemyRepository(ABC):
         try:
             db_obj_new = self.sqla_model(**obj_new.dict())
             self.db.add(db_obj_new)
+
             await self.db.commit()
             await self.db.refresh(db_obj_new)
             
+            logger.success(f"Created new entity: {db_obj_new}.")
+
             return db_obj_new
 
         except Exception as e:
+
             await self.db.rollback()
+
             logger.exception("Error while uploading new object to database")
             logger.exception(e)
 
@@ -69,10 +74,10 @@ class SQLAlchemyRepository(ABC):
         return res
 
 
-    async def read_multiple(
+    async def read_optional(
         self,
-        query_schema: READ_MULTIPLE_SCHEMA,
-    ) -> List[sqla_model] | None:
+        query_schema: read_optional_schema,
+    ): # -> List[sqla_model] | None:
         """Get list of all objects that match with query_schema.
         
         If values in query schema are not provided, they will default to None and
@@ -81,10 +86,11 @@ class SQLAlchemyRepository(ABC):
         """
         filters: dict = query_schema.dict(exclude_none=True)
         stmt = select(self.sqla_model).filter_by(**filters).order_by(self.sqla_model.id)
-        stream = await self.db.stream(stmt)
-        async for row in stream:
 
-            yield row
+        stream = await self.db.stream(stmt)
+
+        async for row in stream:
+            return row
 
 
     async def delete(
@@ -94,8 +100,12 @@ class SQLAlchemyRepository(ABC):
         """Delete object from db by id or None if object not found in db"""
         res = await self.db.get(self.sqla_model, id)
         if res:
+
             await self.db.delete(res)
             await self.db.commit()
+
+            logger.success("Entitiy: {res} successfully deleted from database.")
+
         else:
             logger.error(f"Object with id = {id} not found in query")
 
