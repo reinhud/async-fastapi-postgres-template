@@ -8,6 +8,7 @@ from loguru import logger
 from pydantic import PostgresDsn
 
 from app.core.logging import InterceptHandler
+from app.core.tags_metadata import metadata_tags
 
 
 class AppSettings():
@@ -20,6 +21,7 @@ class AppSettings():
     openapi_prefix: str = ""
     openapi_url: str = "/openapi.json"
     redoc_url: str = "/redoc"
+    openapi_tags: List[dict] = [tag.dict(by_alias=True) for tag in metadata_tags]
     allowed_hosts: List[str] = ["*"]
 
     title: str = os.getenv("APP_TITLE")

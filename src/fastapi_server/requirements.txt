@@ -9,14 +9,14 @@ sqlalchemy==1.4.39
 alembic==1.8.1
 psycopg2-binary==2.9.2    # for ddl in tets migrations
 asyncpg==0.26.0
+sqlalchemy-utils==0.38.3
+greenlet==1.1.2
 
 # testing
 pytest==7.1.1
 anyio==3.6.1
 httpx==0.23.0
 asgi-lifespan==1.0.1
-sqlalchemy-utils==0.38.3
-greenlet==1.1.2
 
 # settings
 python-dotenv==0.20.0

@@ -121,7 +121,7 @@ This is a great place to try out all the routes manually.
 │   └───versions
 └───tests
     ├───fixtures                # where test specific fixtures live
-    └───test_api
+    └───test_api                # testing endpoints
         └───test_routes
 ```
 
@@ -138,4 +138,4 @@ Inspiration, usefull repos, code snippets, etc.
 * Phresh FastAPI Tutorial Series - https://github.com/Jastor11/phresh-tutorial/tree/master
 * Example by rhoboro - https://github.com/rhoboro/async-fastapi-sqlalchemy
 * SQLAlchemy async test suite - https://github.com/sqlalchemy/sqlalchemy/issues/5811
-* Pytest fixture modularization - https://gist.github.com/peterhurford/09f7dcda0ab04b95c026c60fa49c2a68
+

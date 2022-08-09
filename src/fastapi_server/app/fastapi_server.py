@@ -5,17 +5,13 @@
 Main file of FastAPI application.
 
 TODO:
-    * module lvl:
-        1. Improve comments and logging
-    
     * app lvl:
-        1. create test env with own docker-compose and dockerfile and prod.env
+        1. Improve logging
+        2. create tag metadata with pydantic
 
 @Author: Lukas Reinhardt
 @Maintainer: Lukas Reinhardt
 """
-import os
-
 from fastapi import FastAPI
 from loguru import logger
 
@@ -23,8 +19,9 @@ from app.api.routes.router import router as api_router
 from app.core.config import add_middleware, get_app_settings
 from app.db.db_session import initialize_database
 
+
 def get_app() -> FastAPI:
-    """Instanciating and setting up FastAPI application"""
+    """Instanciating and setting up FastAPI application."""
     settings = get_app_settings()
 
     settings.configure_logging()
@@ -50,6 +47,7 @@ app = get_app()
 # ===== App Info Endpoints ===== #
 @app.get("/")
 async def root():
+
     return {"message": "OK"}
 
 @app.get("/settings")
@@ -60,7 +58,6 @@ async def get_app_info():
         "db_settings": settings.database_settings,
         "database url": settings.database_url,
         "app info": settings.fastapi_kwargs,
-        "test_env_files": os.getenv("test_var")
     }
 
     return info

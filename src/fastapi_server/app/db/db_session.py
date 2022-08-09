@@ -12,7 +12,7 @@ def get_async_engine() -> AsyncEngine:
     try:
         async_engine: AsyncEngine = create_async_engine(
             get_app_settings().database_url,
-            echo=True,  # see sql querries executed
+            echo=True,  # see sql queries executed
             future=True,
         )
     except SQLAlchemyError as e:
