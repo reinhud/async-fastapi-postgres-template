@@ -1,6 +1,7 @@
 """Sqlalchemy model for 'parent' table.
 
-This is the basic sqlalchemy relationship example.
+This is the basic sqlalchemy relationship example 
+representing a simple 'ONe-To-Many' relationship pattern.
 """
 from sqlalchemy import Column, Date, Numeric, String
 from sqlalchemy.orm import relationship
