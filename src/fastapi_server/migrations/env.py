@@ -5,6 +5,7 @@ import pathlib
 import sys
 
 from alembic import context
+from loguru import logger
 from sqlalchemy import engine_from_config
 from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy.pool import NullPool
@@ -13,6 +14,7 @@ from sqlalchemy.pool import NullPool
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))
 from app.core.config import get_app_settings
 from app.db.models.base import Base
+from app.db.models.metadata import metadata_family
 
 
 settings = get_app_settings()
@@ -23,8 +25,8 @@ config = context.config
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
-if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+# if config.config_file_name is not None:
+#    fileConfig(config.config_file_name)
 
 # add your model's MetaData object here
 # for 'autogenerate' support
@@ -76,7 +78,7 @@ async def run_migrations_online():
 
     """
     # varies between live and test migrations
-    DATABASE_URL = f"{settings.database_url}_test" if os.environ.get("Testing") else settings.database_url
+    DATABASE_URL = f"{settings.database_url}_test" if os.environ.get("TESTING") else settings.database_url
 
     connectable = context.config.attributes.get("connection", None)
     config.set_main_option("sqlalchemy.url", DATABASE_URL)
@@ -86,7 +88,7 @@ async def run_migrations_online():
                 context.config.get_section(context.config.config_ini_section),
                 prefix="sqlalchemy.",
                 poolclass=NullPool,
-                future=True
+                # future=True
             )
         )
         
@@ -97,6 +99,8 @@ async def run_migrations_online():
 
 
 if context.is_offline_mode():
+    logger.info("Running migrations offline.")
     run_migrations_offline()
 else:
+    logger.info("Running migrations online.")
     asyncio.run(run_migrations_online())

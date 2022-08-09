@@ -60,9 +60,10 @@ def apply_migrations() -> Generator:
 
     # connect to db via sync engine
     DEFAULT_DB_URL = f"postgresql://{settings.postgres_user}:{settings.postgres_password}@{settings.postgres_server}:{settings.postgres_port}/{settings.postgres_db}"
-    default_engine = create_engine(DEFAULT_DB_URL, 
-    echo=True,
-    isolation_level="AUTOCOMMIT"
+    default_engine = create_engine(
+        DEFAULT_DB_URL, 
+        echo=True,
+        isolation_level="AUTOCOMMIT"
     )
     # drop testing db if it exists and create a fresh one
     with default_engine.connect() as default_conn:

@@ -21,6 +21,7 @@ from loguru import logger
 
 from app.api.routes.router import router as api_router
 from app.core.config import add_middleware, get_app_settings
+from app.db.db_session import initialize_database
 
 def get_app() -> FastAPI:
     """Instanciating and setting up FastAPI application"""
@@ -33,6 +34,11 @@ def get_app() -> FastAPI:
     add_middleware(app)
 
     app.include_router(api_router, prefix=settings.api_prefix)
+
+    @app.on_event("startup")
+    async def startup_event() -> None:
+        logger.warning("Startup Event starting")
+        await initialize_database()
 
     return app
 

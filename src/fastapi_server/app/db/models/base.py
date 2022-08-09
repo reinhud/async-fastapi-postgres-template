@@ -8,7 +8,7 @@ from sqlalchemy.sql import func
 Base = declarative_base()
 
 @declarative_mixin
-class BaseSaModel:
+class BaseDBModel:
     """Class defining common db model components."""
     # autoinc pk key
     id = Column(Integer, primary_key=True, autoincrement=True)
