@@ -85,17 +85,7 @@ async def apply_migrations(seed_db) -> Generator:
   
     async with async_engine.connect() as async_conn:
 
-        async_session = sessionmaker(
-        async_engine, 
-        expire_on_commit=False, 
-        class_=AsyncSession,
-        )
-
-        # seed the database
-        async with async_session() as session:
-            async with session.begin():
-                session.add_all(seed_db)
-
+        # create a test db
         await async_conn.run_sync(create_database(TEST_DATABASE))
         # use sqlalchemy ddl for initial table setup
         await async_conn.run_sync(Base.metadata.create_all)
@@ -109,6 +99,15 @@ async def apply_migrations(seed_db) -> Generator:
             )
         # apply migrations
         await alembic.command.upgrade(config, "head")
+        # seed the database
+        async_session = sessionmaker(
+        async_engine, 
+        expire_on_commit=False, 
+        class_=AsyncSession,
+        )
+        async with async_session() as session:
+            async with session.begin():
+                session.add_all(seed_db)
 
         yield
 
