@@ -69,7 +69,7 @@ class SQLAlchemyRepository(ABC):
         id: int,
     ) -> sqla_model | None:
         """Get object by id or return None."""
-        res = await self.db.get(self.sqla_model, id)  # returns none if no entity found
+        res = await self.db.get(self.sqla_model, id)
         
         return res
 
@@ -77,7 +77,7 @@ class SQLAlchemyRepository(ABC):
     async def read_optional(
         self,
         query_schema: read_optional_schema,
-    ): # -> List[sqla_model] | None:
+    ) -> List[sqla_model] | None:
         """Get list of all objects that match with query_schema.
         
         If values in query schema are not provided, they will default to None and
@@ -87,10 +87,9 @@ class SQLAlchemyRepository(ABC):
         filters: dict = query_schema.dict(exclude_none=True)
         stmt = select(self.sqla_model).filter_by(**filters).order_by(self.sqla_model.id)
 
-        stream = await self.db.stream(stmt)
+        res = await self.db.execute(stmt)
 
-        async for row in stream:
-            return row
+        return res.scalars().all()
 
 
     async def delete(

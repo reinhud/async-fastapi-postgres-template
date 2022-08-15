@@ -5,6 +5,7 @@ All logic related to the parent entity is defined and grouped here.
 from typing import List
 
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from app.db.models.parents import Parent as ParentModel
 from app.db.models.children import Child as ChildModel
@@ -26,14 +27,17 @@ class ParentRepository(SQLAlchemyRepository):
 
 
     # Testing relationship patterns are working
-    async def get_parent_children(
+    async def get_parent_children_by_id(
         self,
-        id: int,
+        id,
     ) -> List[sqla_model] | None:
         """Get all children belonging to a certain parent."""
-        stmt = select(ChildModel).join(self.sqla_model, ChildModel.parent_id == self.sqla_model.id)
+        stmt = select(self.sqla_model).options(selectinload(self.sqla_model.children)).filter_by(id=id)
 
         res = await self.db.execute(stmt)
-        res = res.scalars().all()
 
-        return res
+        parent =  res.scalars().first()
+        if parent is None:
+            return None
+        else:
+            return parent.children

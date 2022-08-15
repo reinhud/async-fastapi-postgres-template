@@ -65,14 +65,16 @@ async def delete_parent(
 
 # Basic relationship pattern endpoint
 # =========================================================================== #
-@router.get("/get_children", response_model=List[ChildInDB], name="parents: get-all-children-for-parent")
+@router.get("/get_children", name="parents: get-all-children-for-parent") #response_model=List[ChildInDB]
 async def get_parent_children(
     id: int,
     parent_repo: ParentRepository = Depends(get_repository(ParentRepository)),
 ) -> List[ChildInDB] | None:
-    children = await parent_repo.get_parent_children(id)
-    if not children:
+    children = await parent_repo.get_parent_children_by_id(id=id)
+    if children is None:
+        logger.info(f"Parent with id: {id} not found.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Parent with id: {id} not found.")
+    elif not children:
         logger.info(f"Parent with id: {id} has no children.")
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No children found with parent_id: {id}.")
-    
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No children found for parent with with id: {id}.")
     return children

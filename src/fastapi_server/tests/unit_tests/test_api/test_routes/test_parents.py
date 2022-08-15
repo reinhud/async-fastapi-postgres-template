@@ -108,7 +108,7 @@ class Test_Parents_Positive():
 
     # Basic relationship pattern endpoint
     # ====================================================================== #
-    async def test_get_parent_children_OK(
+    async def test_get_parent_children_by_id_OK(
         self,
         async_test_client,
         Child1_InDB_Schema,
@@ -118,9 +118,9 @@ class Test_Parents_Positive():
         children_of_id_1 = [Child1_InDB_Schema, Child2_InDB_Schema]
         params = {"id": 1}
 
-        async def mock_get_children(self, id):
+        async def get_parent_children_by_id(self, id):
             return children_of_id_1
-        monkeypatch.setattr(ParentRepository, "get_parent_children", mock_get_children)
+        monkeypatch.setattr(ParentRepository, "get_parent_children_by_id", get_parent_children_by_id)
 
         res = await async_test_client.get(
             "/api/parents/get_children",
@@ -134,13 +134,12 @@ class Test_Parents_Positive():
 
 @pytest.mark.anyio
 class Test_Parents_Negative():
-    """Test class for parent endpoints."""
+    """Test class for parent endpoints for negative test cases."""
     # Basic Parent Endpoints
     # ====================================================================== #
     async def test_read_parent_by_id_NOT_FOUND(
         self,
         async_test_client,
-        Parent3_InDB_Schema,
         monkeypatch,
     ):  
         params = {"id": 999}
@@ -161,16 +160,16 @@ class Test_Parents_Negative():
 
     # Basic relationship pattern endpoint
     # ====================================================================== #
-    async def test_get_parent_children_NOT_FOUND(
+    async def test_get_parent_children_by_id_NOT_FOUND(
         self,
         async_test_client,
         monkeypatch,
     ):     
         params = {"id": 999}
 
-        async def mock_get_children(self, id):
+        async def mock_get_parent_children_by_id(self, id):
             return None
-        monkeypatch.setattr(ParentRepository, "get_parent_children", mock_get_children)
+        monkeypatch.setattr(ParentRepository, "get_parent_children_by_id", mock_get_parent_children_by_id)
 
         res = await async_test_client.get(
             "/api/parents/get_children",
@@ -178,5 +177,5 @@ class Test_Parents_Negative():
         )
 
         assert res.status_code == status.HTTP_404_NOT_FOUND
-        assert res.json() == {'detail': f'No children found with parent_id: {params["id"]}.'}
+        assert res.json() == {'detail': f'Parent with id: {params["id"]} not found.'}
 
