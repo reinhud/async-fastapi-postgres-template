@@ -13,7 +13,6 @@ This repo also includes a pytest testing setup applying the sqlalchemy test suit
 to async.
 
 This is a hobby project I use to learn about the awesome FastaAPI project, SQLAlchemy and building REST APIs.
-I also use this to start new Web REST API projects from.  
 If you have any questions, suggestions or ideas regarding my code or project structure
 feel free to contact me or contribute.
 
