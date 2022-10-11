@@ -2,7 +2,7 @@
 
 This is a template for a simple Web REST API using FastAPI with an async Postgres database.
 Using docker-compose to hook up the database and mounting the 
-postgres data to my local machine makes development easier for me.
+postgres data to my local machine makes playing around with the example easier for me.
 
 Communication to the postgres database is done using SQLAlchemy 2.0 ORM style and async
 database access via asyncpg.
